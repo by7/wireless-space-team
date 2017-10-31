@@ -73,12 +73,12 @@ void RF24::setAutoAck(bool enable)
 {
     // CEHCK: START HERE
     // This function either enables all of the AA bits or disables all of the AA bits in the Enable AutoAck register.
-
+	uint8_t buf;
 	if (enable)
-		write_register(EN_AA, 0b11111111, 1);	// write register high for enable, from register table in data sheet
+		buf = 0b11111111;	// write register high for enable, from register table in data sheet
 	else
-		write_register(EN_AA, 0b00000000, 1);	// write register low to disable
-
+		buf = 0b00000000;	// write register low to disable
+	write_register(EN_AA, &buf, 1);
     // TODO: END HERE
 }
 
@@ -91,7 +91,7 @@ void RF24::setPALevel(uint8_t level)
   // level can be RF24_PA_MIN, RF24_PA_LOW, RF24_PA_HIGH, or RF24_PA_MAX.
 	uint8_t buffer;
 	uint8_t bit;
-	read_register(RF_SETUP, buffer, len);	// read current values at setup reg
+	read_register(RF_SETUP, &buffer, 1);	// read current values at setup reg //JINGBIN WHAT IS LEN
 
 	if (level == RF24_PA_MIN)	// from data sheet
 		bit = 0b00000110;
@@ -103,7 +103,7 @@ void RF24::setPALevel(uint8_t level)
 		bit = 0b00000000;
 
 	buffer = buffer | (bit & 0b00000110);	// set the bits that need to change
-	write_register(RF_SETUP, buffer, 1);	// write buffer to reg
+	write_register(RF_SETUP, &buffer, 1);	// write buffer to reg
 
   // TODO: END HERE
 }
@@ -119,7 +119,7 @@ void RF24::setCRCLength(rf24_crclength_e length) // ask jingbin about bitsCRC0 n
 	uint8_t bufferCONFIG;
 	uint8_t bitsEN_CRC;
 	uint8_t bitsCRCO;
-	read_register(CONFIG, bufferCONFIG, 1);		// read current values at CONFIG
+	read_register(CONFIG, &bufferCONFIG, 1);		// read current values at CONFIG
 
 	if (length == RF24_CRC_DISABLED) {	// from data sheet
 		bitsEN_CRC = 0b00000000;
@@ -135,7 +135,7 @@ void RF24::setCRCLength(rf24_crclength_e length) // ask jingbin about bitsCRC0 n
 	}
 
 	bufferCONFIG = bufferCONFIG | (bitsEN_CRC & 0b00001000) | (bitsCRCO & 0b00000100); 	// set buffer bits
-	write_register(CONFIG, bufferCONFIG, 1);		// write buffer to CONFIG
+	write_register(CONFIG, &bufferCONFIG, 1);		// write buffer to CONFIG
 
     // TODO: END HERE
 }
@@ -149,7 +149,7 @@ void RF24::setRetries(uint8_t delay, uint8_t count)
 	uint8_t bufferRETR;
 	uint8_t bitsDELAY;
 	uint8_t bitsCOUNT;
-	read_register(SETUP_RETR,bufferRETR,1);		// read current values at RETR
+	read_register(SETUP_RETR, &bufferRETR,1);		// read current values at RETR
 
 	bitsDELAY = delay;
 	bitsCOUNT = count;
@@ -157,7 +157,7 @@ void RF24::setRetries(uint8_t delay, uint8_t count)
 	bufferRETR = bufferRETR | (bitsDELAY & 11110000);	// set buffer
 	bufferRETR = bufferRETR | (bitsCOUNT & 00001111);
 
-	write_register(SETUP_RETR,bufferRETR,1);
+	write_register(SETUP_RETR, &bufferRETR,1);
 
 
     // TODO: END HERE
