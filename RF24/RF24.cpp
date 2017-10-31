@@ -110,7 +110,7 @@ void RF24::setPALevel(uint8_t level)
 
 /****************************************************************************/
 
-void RF24::setCRCLength(rf24_crclength_e length)
+void RF24::setCRCLength(rf24_crclength_e length) // ask jingbin about bitsCRC0 not being set
 {
     // CHECK: START HERE
     // Set the EN_CRC and CRC0 bits in the CONFIG register based on the length parameter.
@@ -121,7 +121,7 @@ void RF24::setCRCLength(rf24_crclength_e length)
 	uint8_t bitsCRCO;
 	read_register(CONFIG, bufferCONFIG, 1);		// read current values at CONFIG
 
-	if (lenth == RF24_CRC_DISABLED) {	// from data sheet
+	if (length == RF24_CRC_DISABLED) {	// from data sheet
 		bitsEN_CRC = 0b00000000;
 	}
 	else {
@@ -135,7 +135,7 @@ void RF24::setCRCLength(rf24_crclength_e length)
 	}
 
 	bufferCONFIG = bufferCONFIG | (bitsEN_CRC & 0b00001000) | (bitsCRCO & 0b00000100); 	// set buffer bits
-	write_register(CONFIG,,bufferCONFIG 1);		// write buffer to CONFIG
+	write_register(CONFIG, bufferCONFIG, 1);		// write buffer to CONFIG
 
     // TODO: END HERE
 }

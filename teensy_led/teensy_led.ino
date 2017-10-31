@@ -73,7 +73,7 @@ void flashSequence(){
     if(currchar == R){
       numled = RED_LED;
     }else if(currchar == G){
-      numled = GRD_LED;
+      numled = GRN_LED;
     }else if(currchar == B){
       numled = BLU_LED;
     }else{
@@ -90,5 +90,6 @@ void newGame(){
   seq.colors = malloc(0);
   readlen = 0;
   correct = true;
+  flashLED(RED_LED);
 }
 
