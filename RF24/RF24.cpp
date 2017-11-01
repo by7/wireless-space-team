@@ -122,15 +122,15 @@ void RF24::setCRCLength(rf24_crclength_e length) // ask jingbin about bitsCRC0 n
 	read_register(CONFIG, &bufferCONFIG, 1);		// read current values at CONFIG
 
 	if (length == RF24_CRC_DISABLED) {	// from data sheet
-		bitsEN_CRC = 0b00000000;
+		bitsEN_CRC = 0; 
 	}
 	else {
-		bitsEN_CRC = 0b11111111;
+		bitsEN_CRC = -1; 
 		if (length == RF24_CRC_8) {
-			bitsCRCO = 0b00000000;
+			bitsCRCO = 0; 
 		}
 		else {
-			bitsCRCO = 0b11111111;
+			bitsCRCO = -1;
 		}
 	}
 
