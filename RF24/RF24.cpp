@@ -22,8 +22,8 @@ uint8_t RF24::read_register(uint8_t reg, uint8_t* buf, uint8_t len)
   // The global variable csn_pin can be used to access the SS pin.
   // The status variable should be set to the status byte returned by the command (explained in the datasheet).
   
+  SPI.beginTransaction(SPISettings(4000000, MSBFIRST, SPI_MODE0));	// speed, order of reading, MODE) is 0 polarity (rising edge) and 0 phase (edge is middle of bit)
   digitalWrite(csn_pin, LOW);	// write CSN line low to initiate communication, per SPI protocol
-  SPI.beginTransaction(SPISettings(4000000, LSBFIRST, SPI_MODE0));	// speed, order of reading, MODE) is 0 polarity (rising edge) and 0 phase (edge is middle of bit)
   uint8_t add = reg & 0x1f;
   status = SPI.transfer(add);	// send out command byte, get status byte back
   for (int i = 0; i < len; i++) {
@@ -50,13 +50,14 @@ uint8_t RF24::write_register(uint8_t reg, const uint8_t* buf, uint8_t len)
   // The global variable csn_pin can be used to access the SS pin.
   // The status variable should be set to the status byte returned by the command (explained in the datasheet).
 
+  SPI.beginTransaction(SPISettings(4000000, MSBFIRST, SPI_MODE0));	// speed, bit order, MODE0
   digitalWrite(csn_pin, LOW);	// write CSN low to start communication
-  SPI.beginTransaction(SPISettings(4000000, LSBFIRST, SPI_MODE0));	// speed, byte order, MODE0
   uint8_t add = reg & 0x1f;
+  add = add | 0b00100000;
   status = SPI.transfer(add);	// send out command byte, get status back
 
   for (int i = 1; i < len; i++) {
-	  SPI.transfer(*buf, 1);	// transfer from buffer to reg, 1 byte at a time
+	  SPI.transfer(*buf);	// transfer from buffer to reg, 1 byte at a time
 	  buf++;
   }
 
@@ -75,7 +76,7 @@ void RF24::setAutoAck(bool enable)
     // This function either enables all of the AA bits or disables all of the AA bits in the Enable AutoAck register.
 	uint8_t buf;
 	if (enable)
-		buf = 0b11111111;	// write register high for enable, from register table in data sheet
+		buf = 0b00111111;	// write register high for enable, from register table in data sheet
 	else
 		buf = 0b00000000;	// write register low to disable
 	write_register(EN_AA, &buf, 1);
@@ -94,14 +95,15 @@ void RF24::setPALevel(uint8_t level)
 	read_register(RF_SETUP, &buffer, 1);	// read current values at setup reg //JINGBIN WHAT IS LEN
 
 	if (level == RF24_PA_MIN)	// from data sheet
-		bit = 0b00000110;
-	else if (level == RF24_PA_LOW)	
-		bit = 0b00000100;
-	else if (level == RF24_PA_HIGH)
-		bit = 0b00000010;
-	else
 		bit = 0b00000000;
-
+	else if (level == RF24_PA_LOW)	
+		bit = 0b00000010;
+	else if (level == RF24_PA_HIGH)
+		bit = 0b00000100;
+	else
+		bit = 0b00000110;
+	
+	buffer = buffer & 0b11111001;
 	buffer = buffer | (bit & 0b00000110);	// set the bits that need to change
 	write_register(RF_SETUP, &buffer, 1);	// write buffer to reg
 
@@ -118,7 +120,7 @@ void RF24::setCRCLength(rf24_crclength_e length) // ask jingbin about bitsCRC0 n
 
 	uint8_t bufferCONFIG;
 	uint8_t bitsEN_CRC;
-	uint8_t bitsCRCO;
+	uint8_t bitsCRCO = 0b00000000;
 	read_register(CONFIG, &bufferCONFIG, 1);		// read current values at CONFIG
 
 	if (length == RF24_CRC_DISABLED) {	// from data sheet
