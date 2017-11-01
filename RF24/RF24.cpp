@@ -121,7 +121,7 @@ void RF24::setCRCLength(rf24_crclength_e length) // ask jingbin about bitsCRC0 n
 	uint8_t bufferCONFIG;
 	uint8_t bitsEN_CRC;
 	uint8_t bitsCRCO = 0b00000000;
-	read_register(CONFIG, &bufferCONFIG, 1);		// read current values at CONFIG
+	read_register(NRF_CONFIG, &bufferCONFIG, 1);		// read current values at CONFIG
 
 	if (length == RF24_CRC_DISABLED) {	// from data sheet
 		bitsEN_CRC = 0; 
@@ -137,7 +137,7 @@ void RF24::setCRCLength(rf24_crclength_e length) // ask jingbin about bitsCRC0 n
 	}
 
 	bufferCONFIG = bufferCONFIG | (bitsEN_CRC & 0b00001000) | (bitsCRCO & 0b00000100); 	// set buffer bits
-	write_register(CONFIG, &bufferCONFIG, 1);		// write buffer to CONFIG
+	write_register(NRF_CONFIG, &bufferCONFIG, 1);		// write buffer to CONFIG
 
     // TODO: END HERE
 }
