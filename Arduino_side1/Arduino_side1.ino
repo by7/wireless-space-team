@@ -6,8 +6,8 @@
 #define CSN 10
 #define CE 9
 #define BTN_R 3
-#define BTN_G 4
-#define BTN_B 5
+#define BTN_G 5
+#define BTN_B 7
 
 struct Sequence {
   int len;
@@ -48,22 +48,25 @@ int correct = 0;
 // -1 - incorrect sequence - game over
 // 0 - meh
 int index = 0;
-
+int dumb = 0;
 
 void loop() {
   //read from Teensy
   rf.startListening();
   if (rf.available()) {
-    rf.read(&seqTeensy.colors, sizeof(char)*seqTeensy.len); //Read seq from Teensy
+    rf.read(seqTeensy.colors, sizeof(char)*seqTeensy.len); //Read seq from Teensy
     status = 1;
+    Serial.println("New seq received");
   } else {
+    dumb++;
     status = 0; //ignore everything until you get a message
   }
-  rf. stopListening();
+  rf.stopListening();
   
   if (status == 1) { //check over the sequence
-    getSequence();
-    status = checkSequence(seqTeensy.len);
+    if(getSequence()){
+      status = checkSequence(seqTeensy.len);
+    }
   }
 
   if (status == -1) {
@@ -79,7 +82,7 @@ int checkSequence(int len) {
     correct = 1;
     return -1; //setting status to get new sequence
   }  
-  if (seqArduino.colors[index] == seqTeensy.colors[index]) {
+  if (seqArduino.colors[index-1] == seqTeensy.colors[index-1]) {
     return 1; //continue checking
   } else {
     correct = -1;
@@ -87,33 +90,42 @@ int checkSequence(int len) {
   }
 }
 
-void getSequence() {
+bool getSequence() {
   //get inputs for the buttons
   int red = digitalRead(BTN_R);
   int green = digitalRead(BTN_G);
   int blue = digitalRead(BTN_B);  
 
-  char r = 'R', g = 'G', b = 'B';
   //get button presses 
   if (red == HIGH) {
     seqArduino.colors[index] = 'R';
+    index++; //increment
+    Serial.println("R");
+    return true;
   } else if (green == HIGH) {
     seqArduino.colors[index] = 'G';
+    index++; //increment
+    Serial.println("G");
+    return true;
   } else if (blue == HIGH) {
     seqArduino.colors[index] = 'B';
+    index++; //increment
+    Serial.println("B");
+    return true;
   }
-
-  index++; //increment
+  return false;
 }
 
 void newSeq() {
   if (rf.write(&correct, sizeof(correct))) { //write successful
     if (correct == 1) {
+      Serial.println("Moving on");
       seqArduino.len++;
       int newlen = ++(seqTeensy.len);
       realloc(seqArduino.colors,sizeof(char)*newlen);
       realloc(seqTeensy.colors,sizeof(char)*newlen);
     } else if (correct == -1) {
+      Serial.println("Starting over");
       seqArduino.len = 1; //init sequence
       seqArduino.colors = realloc(seqArduino.colors,sizeof(char));
       seqTeensy.len = 1; //init sequence
