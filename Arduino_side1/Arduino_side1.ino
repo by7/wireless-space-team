@@ -97,13 +97,16 @@ void getSequence() {
   //get button presses 
   if (red == HIGH) {
     seqArduino.colors[index] = 'R';
+    index++; //increment
   } else if (green == HIGH) {
     seqArduino.colors[index] = 'G';
+    index++; //increment
   } else if (blue == HIGH) {
     seqArduino.colors[index] = 'B';
+    index++; //increment
   }
 
-  index++; //increment
+  
 }
 
 void newSeq() {
