@@ -56,7 +56,7 @@ uint8_t RF24::write_register(uint8_t reg, const uint8_t* buf, uint8_t len)
   add = add | 0b00100000;
   status = SPI.transfer(add);	// send out command byte, get status back
 
-  for (int i = 1; i < len; i++) {
+  for (int i = 0; i < len; i++) {
 	  SPI.transfer(*buf);	// transfer from buffer to reg, 1 byte at a time
 	  buf++;
   }
