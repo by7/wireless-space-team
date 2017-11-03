@@ -63,7 +63,7 @@ void loop() {
   
   if (status == 1) { //check over the sequence
     getSequence();
-    checkSequence(seqTeensy.len);
+    status = checkSequence(seqTeensy.len);
   }
 
   if (status == -1) {
