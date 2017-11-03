@@ -13,7 +13,7 @@ struct Sequence{
   char* colors;
 } seq;
 
-RF24 rf(CE, CSN)
+RF24 rf(CE, CSN);
 
 void setup() {
   // put your setup code here, to run once:
@@ -33,6 +33,7 @@ void setup() {
   seq.colors = malloc(0);
 }
 
+int readlen = 0;
 int status = 1;
 // 1 - correct and continue
 // -1 - incorrect and restart
@@ -48,10 +49,12 @@ void loop() {
     
     nextSeq();
     flashSequence();
-    status = 0;
+    //status = 0;
     // Write sequence to Arduino
     rf.stopListening();
-    rf.write(seq.colors, seq.len);
+    if (rf.write(seq.colors, seq.len)) {
+      status = 0;
+    }
 
 
   }
@@ -108,7 +111,7 @@ void flashSequence(){
 
   Serial.print("Write seq: ");
 
-  for(; i<len; iterchar++){
+  for(; iterchar<len; iterchar++){
     currchar = *iterchar;
     if(currchar == "R"){
       numled = RED_LED;
@@ -131,7 +134,7 @@ void newGame(){
   seq.len = 0; //init sequence
   seq.colors = malloc(0);
   readlen = 0;
-  correct = true;
+  //correct = true;
   flashLED(RED_LED);
   status = 1;
 }
