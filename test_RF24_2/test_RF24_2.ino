@@ -19,18 +19,30 @@ void setup() {
   pinMode(BTN,INPUT);
   rf.stopListening();
   Serial.begin(9600);
+  rf.printDetails();
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
   int in = digitalRead(BTN);
-  char buf = '1';
-  if(in == HIGH){
-    Serial.println(buf);
-    if(!rf.write(&buf,1)){
-      Serial.println("No ack");
-    }
+  char buf = '!';
+//  if(in == HIGH){ //input to button
+//    Serial.println(buf);
+//    if(!rf.write(&buf,1)){
+//      Serial.println("No ack");
+//    } else {
+//      Serial.println("ack");
+//      }
+//  } else { //no input to button
+//    Serial.println("No button presso");
+//  }
+  if (rf.write(&buf, 1)) {
+    Serial.println("We in business, bitches");  
+  } else {
+    Serial.println("We ain't doing so hot, sweetharht");
   }
+  
+  Serial.println("FUCK.");
   
   delay(100);
 }
