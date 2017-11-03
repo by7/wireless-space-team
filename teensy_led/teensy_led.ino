@@ -30,7 +30,7 @@ void setup() {
   Serial.begin(9600);
 
   seq.len = 0; //init sequence
-  seq.colors = malloc(0);
+  seq.colors = (char*) malloc(0);
 }
 
 int readlen = 0;
@@ -49,11 +49,12 @@ void loop() {
     
     nextSeq();
     flashSequence();
-    //status = 0;
+    status = 0;
     // Write sequence to Arduino
     rf.stopListening();
-    if (rf.write(seq.colors, seq.len)) {
-      status = 0;
+    while(! rf.write(seq.colors, seq.len)) {
+      //status = 0;
+      Serial.println("Attempting to write");
     }
 
 
@@ -74,15 +75,21 @@ void loop() {
     Serial.println("Incorrect!");
     newGame();
   }
+
+  //nextSeq();
+  //flashSequence();
+  
   delay(100); //arbitrary - change later
 }
 
 void nextSeq(){
   int newlen = ++(seq.len); // increase length by 1
-
+  //Serial.println(seq.len);
   int randnum = random(3);
+  
   char newchar;
   if(randnum == 0){
+    //Serial.println(randnum);  
     newchar = 'R'; //add R
   }else if(randnum == 1){
     newchar = 'G'; //add G
@@ -93,7 +100,7 @@ void nextSeq(){
 
 
   realloc(seq.colors,newlen); // do i need to save the old colors?
-  (seq.colors)[newlen] = newchar;
+  (seq.colors)[newlen-1] = newchar;
 }
 
 void flashLED(int led){
@@ -105,19 +112,20 @@ void flashLED(int led){
 
 void flashSequence(){
   int len = seq.len;
+  int i = 0;
   char* iterchar = seq.colors;
   int numled;
   char currchar;
 
   Serial.print("Write seq: ");
 
-  for(; iterchar<len; iterchar++){
+  for(; i<len; iterchar++,i++){
     currchar = *iterchar;
-    if(currchar == "R"){
+    if(currchar == 'R'){
       numled = RED_LED;
-    }else if(currchar == "G"){
+    }else if(currchar == 'G'){
       numled = GRN_LED;
-    }else if(currchar == "B"){
+    }else if(currchar == 'B'){
       numled = BLU_LED;
     }else{
       Serial.println("currchar is not RGB!");
@@ -132,9 +140,8 @@ void flashSequence(){
 void newGame(){
   free(seq.colors);
   seq.len = 0; //init sequence
-  seq.colors = malloc(0);
+  seq.colors = (char*) malloc(0);
   readlen = 0;
-  //correct = true;
   flashLED(RED_LED);
   status = 1;
 }
