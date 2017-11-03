@@ -38,37 +38,58 @@ void setup() {
 
 int readlen = 0;
 bool correct = true;
-int indexArduino = 0, indexTeensy= 0; //place in array in Arduino and Teensy
+int indexArduino = 0;
+char r = 'R', g = 'G', b = 'B';
 
 void loop() {
   //get inputs for the buttons
   int red = digitalRead(BTN_R);
   int green = digitalRead(BTN_G);
   int blue = digitalRead(BTN_B);
-
-  char r = 'R', g = 'G', b = 'B';
   
   //reads sequence if new cycle and shit
-  seqArduino.len = seq.len;
-  realloc(seqArduino.colors, sizeof(char)*seq.len);
+  //  seqArduino.len = seq.len;
+  //  realloc(seqArduino.colors, sizeof(char)*seq.len);
   
+  // Increase size of array as player presses more buttons
+  seqArduino.len++;
+  realloc(seqArduino.colors(seqArduino.len));
+
   //get button presses 
   if (red == HIGH) {
     seqArduino.colors[indexArduino] = 'R';
   } else if (green == HIGH) {
-    seqArduino.colors[indexArduino] = 'R';
+    seqArduino.colors[indexArduino] = 'G';
   } else if (blue == HIGH) {
-    
+    seqArduiono.colors[indexArduino] = 'B';
   }
 
-  //if button press does not match with teensy then send false and deallocate
-  //or is length is same and button presses are correct then send true and deallocate
-  
+  // Read in Teensy data
+
+  rf.startListening();
+
+  if(rf.available()){
+	// read in colors and size of array into seq
+  }
+ 
+  rf.stopListening();
+
+  // if length is same and button presses are correct then send true and deallocate
+  // otherwise false and deallocate
+
+  if(seqArduino.len == seq.len){
+     for(int i = 0; i < seq.len){
+     	if(seqArduino.colors[i] == seq.colors[i])
+	   // write success (1)
+	else
+	   // write fail (-1)
+     }
+     seqArduino.len = 0;
+     free(seqArduino.colors);
+     seqArduino.colors = malloc(0);
+     indexArduino = -1;
+  }
+
+  indexArduino++;
   delay(100);
 }
-
-
-
-
-
-
