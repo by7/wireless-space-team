@@ -13,7 +13,7 @@ int val;
 
 struct Sequence {
   int len;
-  char* colors;  
+  char colors[64];  
 } seqArduino, seqTeensy;
 
 RF24 rf(CE, CSN);
@@ -34,9 +34,9 @@ void setup() {
   //rf.printDetails();
 
   seqArduino.len = 1; //init sequence
-  seqArduino.colors = malloc(sizeof(char));
+  //seqArduino.colors = malloc(sizeof(char));
   seqTeensy.len = 1; //init sequence
-  seqTeensy.colors = malloc(sizeof(char));
+  //seqTeensy.colors = malloc(sizeof(char));
 }
 
 int stat = 0;
@@ -45,7 +45,7 @@ int stat = 0;
 // 0 - do nothing
 int correct = 0;
 // 1 - correct sequence
-// -1 - incorrect sequence - game over
+// 2 - incorrect sequence - game over
 // 0 - meh
 int index = 0;
 
@@ -53,10 +53,19 @@ void loop() {
   //read from Teensy
 
   rf.stopListening();
-  int val = rf.write(&correct, sizeof(int));
+  val = rf.write(&correct, sizeof(int));
   Serial.println(val);
   if (stat == -1) {
     newSeq(); //either moves on or starts over
+  }
+  
+  if (stat == 1) { //check over the sequence
+    Serial.println("pls press button");
+    if(getSequence()){
+      stat = checkSequence(seqTeensy.len);
+      Serial.print("stat is ");
+      Serial.println(stat);
+    }
   }
   
   rf.startListening();
@@ -65,25 +74,12 @@ void loop() {
       rf.read(seqTeensy.colors, sizeof(char)*seqTeensy.len); //Read seq from Teensy
       stat = 1;
       Serial.println("New seq received");
-      for(int i=0;i<seqArduino.len;i++)
-        Serial.print(*(seqArduino.colors+i));
+      char* iterchar = seqTeensy.colors;
+      for(int i=0; i<seqTeensy.len; iterchar++, i++)
+        Serial.print(*iterchar);
       Serial.println();
-    } else {
-      Serial.println("nothing");
-      //stat = 0; //ignore everything until you get a message
-    }
-
+    } 
   }
-  
-  if (stat == 1) { //check over the sequence
-    Serial.println("pls check")
-    if(getSequence()){
-      stat = checkSequence(seqTeensy.len);
-      Serial.print("stat is ");
-      Serial.println(stat);
-    }
-  }
-  
   delay(100);
 }
 
@@ -96,7 +92,7 @@ int checkSequence(int len) {
     }
     return 1; //continue checking
   } else {
-    correct = -1;
+    correct = 2;
     return -1; //time to reset the game  
   }
 }
@@ -138,20 +134,21 @@ bool getSequence() {
 }
 
 void newSeq() {
-  Serial.println("!!>>???");
   if (val) { //write successful
     if (correct == 1) {
       Serial.println("Moving on");
       seqArduino.len++;
+      Serial.print("new len: ");
+      Serial.println(seqArduino.len);
       int newlen = ++(seqTeensy.len);
-      realloc(seqArduino.colors,sizeof(char)*newlen);
-      realloc(seqTeensy.colors,sizeof(char)*newlen);
-    } else if (correct == -1) {
+      //realloc(seqArduino.colors,sizeof(char)*newlen);
+      //realloc(seqTeensy.colors,sizeof(char)*newlen);
+    } else if (correct == 2) {
       Serial.println("Starting over");
       seqArduino.len = 1; //init sequence
-      seqArduino.colors = realloc(seqArduino.colors,sizeof(char));
+      //seqArduino.colors = realloc(seqArduino.colors,sizeof(char));
       seqTeensy.len = 1; //init sequence
-      seqTeensy.colors = realloc(seqTeensy.colors,sizeof(char));  
+      //seqTeensy.colors = realloc(seqTeensy.colors,sizeof(char));  
     }
     Serial.println(">???");
     correct = 0;
