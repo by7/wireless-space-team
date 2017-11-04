@@ -34,50 +34,71 @@ void setup() {
 }
 
 int readlen = 0;
-int status = 1;
+int stat = 1;
 // 1 - correct and continue
 // -1 - incorrect and restart
 // 0 - do nothing
 
 void loop() {
   // put your main code here, to run repeatedly:
-
-  if(status == 1){
+  Serial.print("Stat: ");
+  Serial.println(stat);
+  if(stat == 1){
 
     Serial.println("Correct!");
     flashLED(GRN_LED);
     
     nextSeq();
     flashSequence();
-    status = 0;
+    stat = 0;
     // Write sequence to Arduino
     rf.stopListening();
+    //delay(100);
+    rf.reUseTX();
     while(! rf.write(seq.colors, seq.len)) {
-      //status = 0;
+      //stat = 0;
       Serial.println("Attempting to write");
     }
 
 
   }
 
+  if (stat == 0) {
   // Read from Arduino
   rf.startListening();
-
-  if(rf.available()){
-    rf.read(&status, sizeof(status)); // Read result from Arduino
-    //print stuff for debug
-    Serial.print("read status: ");
-    Serial.println(status);
+  delay(100);
+  Serial.println("WHy no avail?");
+  while (! rf.available()) {
+    Serial.println("WHy no available?");
   }
-
+  if(rf.available()){
+    //char buf;
+    rf.read(&stat, sizeof(int)); // Read result from Arduino
+    //print stuff for debug
+    Serial.print("read stat: ");
+    //stat = (int) buf;
+    Serial.println(stat);
+  }
+  }
+  
   // If incorrect, restart game
-  if(status == -1){
+  if(stat == -1){
     Serial.println("Incorrect!");
     newGame();
   }
 
-  //nextSeq();
-  //flashSequence();
+/* WORKING EXAMPLE */  
+//  rf.stopListening();
+//  
+//  int sending = 6;
+//  int chicken = rf.write(&sending, sizeof(int));
+//  Serial.println(chicken);
+//
+//  rf.startListening();
+//  if (rf.available()) {
+//    rf.read(&stat, sizeof(int));  
+//    Serial.println(stat);
+//  }
   
   delay(100); //arbitrary - change later
 }
@@ -143,6 +164,6 @@ void newGame(){
   seq.colors = (char*) malloc(0);
   readlen = 0;
   flashLED(RED_LED);
-  status = 1;
+  stat = 1;
 }
 
