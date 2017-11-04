@@ -10,7 +10,7 @@
 
 struct Sequence{
   int len;
-  char* colors;
+  char colors[64];
 } seq;
 
 RF24 rf(CE, CSN);
@@ -29,14 +29,15 @@ void setup() {
   pinMode(BLU_LED,OUTPUT);
   Serial.begin(9600);
 
+  randomSeed(analogRead(0));
   seq.len = 0; //init sequence
-  seq.colors = (char*) malloc(0);
+  //seq.colors = (char*) malloc(0);
 }
 
 int readlen = 0;
 int stat = 1;
 // 1 - correct and continue
-// -1 - incorrect and restart
+// 2 - incorrect and restart
 // 0 - do nothing
 
 void loop() {
@@ -45,20 +46,23 @@ void loop() {
   Serial.println(stat);
   if(stat == 1){
 
-    Serial.println("Correct!");
+//    Serial.println("Correct!");
     flashLED(GRN_LED);
-    
+    delay(1000);
     nextSeq();
     flashSequence();
     stat = 0;
     // Write sequence to Arduino
     rf.stopListening();
     //delay(100);
-    rf.reUseTX();
-    while(! rf.write(seq.colors, seq.len)) {
-      //stat = 0;
-      Serial.println("Attempting to write");
-    }
+    //rf.reUseTX();
+    int chicken = rf.write(seq.colors, seq.len);
+    Serial.print("Chicken: ");
+    Serial.println(chicken);
+//    while(! rf.write(seq.colors, seq.len)) {
+//      //stat = 0;
+//      Serial.println("Attempting to write");
+//    }
 
 
   }
@@ -67,22 +71,24 @@ void loop() {
   // Read from Arduino
   rf.startListening();
   delay(100);
-  Serial.println("WHy no avail?");
+  //Serial.println("WHy no avail?");
   while (! rf.available()) {
     Serial.println("WHy no available?");
+    delay(1000);
   }
   if(rf.available()){
     //char buf;
-    rf.read(&stat, sizeof(int)); // Read result from Arduino
+    rf.read(&stat, sizeof(int));  // Read result from Arduino
     //print stuff for debug
     Serial.print("read stat: ");
     //stat = (int) buf;
     Serial.println(stat);
+    //stat = 0;
   }
   }
   
   // If incorrect, restart game
-  if(stat == -1){
+  if(stat == 2){
     Serial.println("Incorrect!");
     newGame();
   }
@@ -120,15 +126,15 @@ void nextSeq(){
 
 
 
-  realloc(seq.colors,newlen); // do i need to save the old colors?
+  //realloc(seq.colors,newlen); // do i need to save the old colors?
   (seq.colors)[newlen-1] = newchar;
 }
 
 void flashLED(int led){
   digitalWrite(led, HIGH);
-  delay(100);
+  delay(300);
   digitalWrite(led, LOW);
-  delay(100);
+  delay(300);
 }
 
 void flashSequence(){
@@ -159,9 +165,9 @@ void flashSequence(){
 }
 
 void newGame(){
-  free(seq.colors);
+  //free(seq.colors);
   seq.len = 0; //init sequence
-  seq.colors = (char*) malloc(0);
+  //seq.colors = (char*) malloc(0);
   readlen = 0;
   flashLED(RED_LED);
   stat = 1;
